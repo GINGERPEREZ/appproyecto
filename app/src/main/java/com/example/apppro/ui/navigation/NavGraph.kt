@@ -8,7 +8,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.apppro.ui.screens.AddHabitScreen
 import com.example.apppro.ui.screens.HabitsScreen
 import com.example.apppro.ui.screens.ProgressScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apppro.ui.viewmodel.HabitViewModel
 
 object Destinations {
@@ -18,16 +17,26 @@ object Destinations {
 }
 
 @Composable
-fun AppNavHost(modifier: Modifier = Modifier) {
+fun AppNavHost(
+    viewModel: HabitViewModel,
+    isDarkTheme: Boolean,
+    onThemeToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val navController = rememberNavController()
-    val vm: HabitViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = Destinations.HABITS, modifier = modifier) {
         composable(Destinations.HABITS) {
-            HabitsScreen(viewModel = vm, onAdd = { navController.navigate(Destinations.ADD) }, onShowProgress = { navController.navigate(Destinations.PROGRESS) })
+            HabitsScreen(
+                viewModel = viewModel,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
+                onAdd = { navController.navigate(Destinations.ADD) },
+                onShowProgress = { navController.navigate(Destinations.PROGRESS) }
+            )
         }
         composable(Destinations.ADD) {
-            AddHabitScreen(viewModel = vm, onDone = { navController.navigateUp() })
+            AddHabitScreen(viewModel = viewModel, onDone = { navController.navigateUp() })
         }
         composable(Destinations.PROGRESS) {
             ProgressScreen(onBack = { navController.navigateUp() })

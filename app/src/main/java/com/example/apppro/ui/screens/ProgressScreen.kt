@@ -269,7 +269,10 @@ private fun TaskCard(
             val animated by animateFloatAsState(targetValue = pct, animationSpec = TweenSpec(durationMillis = 600, easing = LinearEasing))
 
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                LinearProgressIndicator(progress = animated, modifier = Modifier.weight(1f).height(10.dp))
+                LinearProgressIndicator(
+                    progress = { animated },
+                    modifier = Modifier.weight(1f).height(10.dp)
+                )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(text = "${(animated * 100).toInt()}%", modifier = Modifier.width(50.dp), textAlign = TextAlign.End)
             }

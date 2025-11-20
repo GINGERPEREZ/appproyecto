@@ -2,7 +2,7 @@ package com.example.apppro.data
 
 import android.util.Base64
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.example.apppro.ui.viewmodel.Habit
+import com.example.apppro.domain.model.Habit
 import java.time.LocalDate
 
 val HABITS_KEY = stringPreferencesKey("habits_serialized")
@@ -28,7 +28,7 @@ fun deserializeHabits(s: String): List<Habit> {
             parts[1]
         }
         val datesPart = parts[2]
-        val completions = if (datesPart.isBlank()) mutableListOf() else datesPart.split(",").map { LocalDate.parse(it) }.toMutableList()
+        val completions = if (datesPart.isBlank()) emptyList() else datesPart.split(",").map { LocalDate.parse(it) }
         Habit(id = id, name = name, completions = completions)
     }
 }

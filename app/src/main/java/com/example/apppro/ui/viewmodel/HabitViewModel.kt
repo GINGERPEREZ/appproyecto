@@ -1,92 +1,92 @@
 package com.example.apppro.ui.viewmodel
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.example.apppro.domain.model.Habit
+import com.example.apppro.domain.model.HabitProgress
+import com.example.apppro.domain.usecase.AddHabitUseCase
+import com.example.apppro.domain.usecase.ObserveHabitProgressUseCase
+import com.example.apppro.domain.usecase.ObserveHabitsUseCase
+import com.example.apppro.domain.usecase.ObserveOverallProgressUseCase
+import com.example.apppro.domain.usecase.SetHabitProgressUseCase
+import com.example.apppro.domain.usecase.ToggleHabitCompletionUseCase
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
-data class Habit(
-    val id: Long,
-    val name: String,
-    val createdAt: LocalDate = LocalDate.now(),
-    var completions: MutableList<LocalDate> = mutableListOf(),
-    val goalDays: Int = 7 // number of days for the target window (week by default)
-)
+class HabitViewModel(
+    observeHabitsUseCase: ObserveHabitsUseCase,
+    observeHabitProgressUseCase: ObserveHabitProgressUseCase,
+    observeOverallProgressUseCase: ObserveOverallProgressUseCase,
+    private val addHabitUseCase: AddHabitUseCase,
+    private val toggleHabitCompletionUseCase: ToggleHabitCompletionUseCase,
+    private val setHabitProgressUseCase: SetHabitProgressUseCase
+) : ViewModel() {
 
-class HabitViewModel : ViewModel() {
-    private val _habits = mutableStateListOf<Habit>()
-    val habits: List<Habit> get() = _habits
+    val habits: StateFlow<List<Habit>> = observeHabitsUseCase()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private var nextId by mutableStateOf(1L)
-    // Use StateFlow for ViewModel-level observable state (independent from Compose runtime)
-    private val _overallProgress = MutableStateFlow(0f)
-    val overallProgress: StateFlow<Float> get() = _overallProgress
+    private val habitProgressState: StateFlow<List<HabitProgress>> = observeHabitProgressUseCase()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    init {
-        // Seed with a couple examples
-        addHabit("Tomar agua")
-        addHabit("Estudiar 30 min")
-    }
+    val overallProgress: StateFlow<Float> = observeOverallProgressUseCase()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0f)
 
-    // Compute progress for a specific habit as fraction of completions in the recent window
-    fun habitProgress(habitId: Long): Float {
-        val h = _habits.find { it.id == habitId } ?: return 0f
-        if (h.goalDays <= 0) return 0f
-        val today = LocalDate.now()
-        val windowStart = today.minus(h.goalDays.toLong() - 1, ChronoUnit.DAYS)
-        val count = h.completions.count { d -> !d.isBefore(windowStart) && !d.isAfter(today) }
-        return (count.toFloat() / h.goalDays.toFloat()).coerceAtMost(1f)
-    }
-
-    private fun recomputeOverallProgress() {
-        val value = if (_habits.isEmpty()) 0f
-        else {
-            val completedToday = _habits.count { it.completions.contains(LocalDate.now()) }
-            completedToday.toFloat() / _habits.size.toFloat()
-        }
-        _overallProgress.value = value
-    }
-
-    fun addHabit(name: String, goalDays: Int = 7) {
-        _habits.add(Habit(id = nextId++, name = name, goalDays = goalDays))
-        // Recompute overall progress immediately after adding a new habit so UI updates.
-        recomputeOverallProgress()
-    }
-
-    fun toggleCompletion(habitId: Long, date: LocalDate = LocalDate.now()) {
-        val h = _habits.find { it.id == habitId } ?: return
-        if (h.completions.contains(date)) h.completions.remove(date) else h.completions.add(date)
-        // Trigger recomposition by replacing the object in the list
-        val index = _habits.indexOfFirst { it.id == habitId }
-        if (index >= 0) {
-            _habits[index] = h.copy(completions = h.completions.toMutableList())
-            // Recompute overall progress when a completion toggles
-            recomputeOverallProgress()
-        }
-    }
-
-    fun completionsCount(habitId: Long): Int {
-        return _habits.find { it.id == habitId }?.completions?.size ?: 0
-    }
-
-    // Replace the internal list with deserialized data (used by persistence loader)
-    fun setHabits(newHabits: List<Habit>) {
-        _habits.clear()
-        _habits.addAll(newHabits.map { it.copy(completions = it.completions.toMutableList()) })
-        val maxId = _habits.maxOfOrNull { it.id } ?: 0L
-        nextId = maxId + 1
-        recomputeOverallProgress()
-    }
-
-    // UI selection helper: highlight or navigate to a habit
     var selectedHabitId by mutableStateOf<Long?>(null)
+        private set
 
     fun selectHabit(id: Long?) {
         selectedHabitId = id
+    }
+
+    fun habitProgressFor(habitId: Long): HabitProgress? = habitProgressState.value.firstOrNull { it.habitId == habitId }
+
+    fun addHabit(name: String, windowDays: Int = 7) {
+        viewModelScope.launch {
+            val habit = Habit(id = 0, name = name, windowDays = windowDays)
+            addHabitUseCase(habit)
+        }
+    }
+
+    fun toggleCompletion(habitId: Long, date: LocalDate = LocalDate.now()) {
+        viewModelScope.launch {
+            toggleHabitCompletionUseCase(habitId, date)
+        }
+    }
+
+    fun setHabitProgress(habitId: Long, fraction: Float) {
+        viewModelScope.launch {
+            setHabitProgressUseCase(habitId, fraction)
+        }
+    }
+}
+
+class HabitViewModelFactory(
+    private val observeHabitsUseCase: ObserveHabitsUseCase,
+    private val observeHabitProgressUseCase: ObserveHabitProgressUseCase,
+    private val observeOverallProgressUseCase: ObserveOverallProgressUseCase,
+    private val addHabitUseCase: AddHabitUseCase,
+    private val toggleHabitCompletionUseCase: ToggleHabitCompletionUseCase,
+    private val setHabitProgressUseCase: SetHabitProgressUseCase
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(HabitViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return HabitViewModel(
+                observeHabitsUseCase,
+                observeHabitProgressUseCase,
+                observeOverallProgressUseCase,
+                addHabitUseCase,
+                toggleHabitCompletionUseCase,
+                setHabitProgressUseCase
+            ) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
     }
 }

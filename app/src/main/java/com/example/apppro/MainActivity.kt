@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
-
+////////////// ACTIVACION DE SENSOR
                 if (showNightAlert && hasPendingHabits) {
                     AlertDialog(
                         onDismissRequest = { nightAlertState.value = false },

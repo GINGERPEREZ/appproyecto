@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.apppro.domain.model.Habit
 import com.example.apppro.domain.model.HabitProgress
+import com.example.apppro.domain.model.HabitStatus
 import com.example.apppro.domain.usecase.AddHabitUseCase
 import com.example.apppro.domain.usecase.ObserveHabitProgressUseCase
 import com.example.apppro.domain.usecase.ObserveHabitsUseCase
@@ -16,6 +17,7 @@ import com.example.apppro.domain.usecase.SetHabitProgressUseCase
 import com.example.apppro.domain.usecase.ToggleHabitCompletionUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -37,6 +39,10 @@ class HabitViewModel(
 
     val overallProgress: StateFlow<Float> = observeOverallProgressUseCase()
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0f)
+
+    val hasPendingHabits: StateFlow<Boolean> = habitProgresses
+        .map { progressList -> progressList.any { it.status != HabitStatus.COMPLETED } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     var selectedHabitId by mutableStateOf<Long?>(null)
         private set

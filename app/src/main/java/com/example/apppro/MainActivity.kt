@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
     private val habitViewModel: HabitViewModel by lazy {
         ViewModelProvider(this, appContainer.habitViewModelFactory)[HabitViewModel::class.java]
     }
-
+//////////////// SENSOR
     private val lightSensorListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
             val lux = event.values.firstOrNull() ?: return
@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
-
+////////////// ACTIVACION DE SENSOR
                 if (showNightAlert && hasPendingHabits) {
                     AlertDialog(
                         onDismissRequest = { nightAlertState.value = false },

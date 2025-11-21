@@ -1,3 +1,4 @@
 <resources>
+    <!-- Nombre que se muestra para la aplicación en el sistema. -->
     <string name="app_name">APPPRO</string>
 </resources>

@@ -11,6 +11,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+// Colores base utilizados cuando se selecciona el modo oscuro.
 private val DarkColorScheme = darkColorScheme(
     primary = md_primary,
     onPrimary = md_onPrimary,
@@ -23,6 +24,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = md_neutral_800
 )
 
+// Colores base utilizados cuando se selecciona el modo claro.
 private val LightColorScheme = lightColorScheme(
     primary = md_primary,
     onPrimary = md_onPrimary,
@@ -45,6 +47,9 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+/**
+ * Tema personalizado que aplica esquemas claros u oscuros y soporta colores dinámicos.
+ */
 @Composable
 fun APPPROTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

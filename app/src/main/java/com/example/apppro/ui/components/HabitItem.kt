@@ -32,6 +32,9 @@ import com.example.apppro.domain.model.Habit
 import kotlin.math.max
 
 @Composable
+/**
+ * Componente que representa un hábito en la lista con un slider para ajustar su progreso.
+ */
 fun HabitItem(
     habit: Habit,
     isCompleted: Boolean,

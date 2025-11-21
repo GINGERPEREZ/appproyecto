@@ -1,3 +1,4 @@
+// Listado de configuracion
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Tema base que se usa como punto de partida para MainActivity. -->
     <style name="Theme.APPPRO" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

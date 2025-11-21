@@ -1,4 +1,9 @@
+//settings.gradle.kts       # incluye el módulo `:app`
+
+
 pluginManagement {
+
+
     repositories {
         google {
             content {

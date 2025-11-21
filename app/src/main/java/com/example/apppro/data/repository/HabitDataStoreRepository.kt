@@ -17,6 +17,9 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
+/**
+ * Implementación de `HabitRepository` que usa Preferences DataStore para persistir hábitos.
+ */
 class HabitDataStoreRepository(
     private val context: Context,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -24,6 +27,7 @@ class HabitDataStoreRepository(
 
     override fun observeHabits(): Flow<List<Habit>> {
         return context.dataStore.data
+            // Cada cambio en DataStore se transforma a lista de hábitos.
             .map { prefs -> prefs[HABITS_KEY] ?: "" }
             .map { serialized -> deserializeHabits(serialized) }
     }
@@ -61,6 +65,7 @@ class HabitDataStoreRepository(
             val filledDays = (clamped * windowDays).toInt().coerceIn(0, windowDays)
             val windowDates = (0 until windowDays).map { idx -> today.minus(idx.toLong(), ChronoUnit.DAYS) }
             val cappedCompletions = windowDates.take(filledDays).toSet()
+            // Conserva completados previos fuera de la ventana pero elimina fechas duplicadas.
             val windowStart = today.minus((windowDays - 1).toLong(), ChronoUnit.DAYS)
             val carriedOver = habit.completions.filter { it.isBefore(windowStart) }
             val result = (carriedOver + cappedCompletions).distinct()

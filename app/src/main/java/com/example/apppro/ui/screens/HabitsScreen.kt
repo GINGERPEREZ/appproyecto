@@ -33,6 +33,9 @@ import com.example.apppro.ui.viewmodel.HabitViewModel
 import java.time.LocalDate
 
 @Composable
+/**
+ * Pantalla principal que muestra hábitos, progreso global y permite alternar tema y abrir otras pantallas.
+ */
 fun HabitsScreen(
     viewModel: HabitViewModel,
     isDarkTheme: Boolean,
@@ -69,6 +72,7 @@ fun HabitsScreen(
                 }
 
                 Column(horizontalAlignment = Alignment.End) {
+                    // Aquí se muestra el selector de tema y los botones de navegación de la cabecera.
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = if (isDarkTheme) "Tema oscuro" else "Tema claro",

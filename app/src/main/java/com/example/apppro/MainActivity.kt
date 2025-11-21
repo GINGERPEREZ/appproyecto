@@ -3,47 +3,51 @@ package com.example.apppro
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apppro.di.AppContainer
 import com.example.apppro.ui.navigation.AppNavHost
 import com.example.apppro.ui.theme.APPPROTheme
 import com.example.apppro.ui.viewmodel.HabitViewModel
 
-private const val NIGHT_THRESHOLD_LUX = 10f
-private const val NIGHT_NOTIFICATION_CHANNEL = "night_tasks"
-private const val NIGHT_NOTIFICATION_ID = 1001
-
+/**
+ * Actividad principal que configura el tema, el ViewModel y el grafo de navegación.
+ */
 class MainActivity : ComponentActivity() {
     private lateinit var appContainer: AppContainer
-    private val nightAlertState = mutableStateOf(false)
-    private lateinit var sensorManager: SensorManager
-    private var lightSensor: Sensor? = null
-    private var nightModeTriggered = false
-    private lateinit var notificationManager: NotificationManagerCompat
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        appContainer = AppContainer(this)
+        setContent {
+            // Conserva la preferencia de modo oscuro incluso tras recomposiciones.
+            var isDarkTheme by rememberSaveable { mutableStateOf(false) }
+            val habitViewModel: HabitViewModel = viewModel(factory = appContainer.habitViewModelFactory)
+            APPPROTheme(darkTheme = isDarkTheme) {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    AppNavHost(
+                        viewModel = habitViewModel,
+                        isDarkTheme = isDarkTheme,
+                        onThemeToggle = { isDarkTheme = it },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+        }
+    }
+}
     private val habitViewModel: HabitViewModel by lazy {
         ViewModelProvider(this, appContainer.habitViewModelFactory)[HabitViewModel::class.java]
     }

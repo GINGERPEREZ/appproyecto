@@ -3,6 +3,9 @@ package com.example.apppro.domain.usecase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+/**
+ * Calcula el promedio general del progreso de todos los hábitos para mostrar en la UI.
+ */
 class ObserveOverallProgressUseCase(
     private val observeHabitProgressUseCase: ObserveHabitProgressUseCase
 ) {

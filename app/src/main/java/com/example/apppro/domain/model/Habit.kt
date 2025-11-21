@@ -3,6 +3,9 @@ package com.example.apppro.domain.model
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
+/**
+ * Representa los estados posibles del progreso de un hábito dentro de la ventana actual.
+ */
 enum class HabitStatus {
     COMPLETED,
     IN_PROGRESS,
@@ -23,6 +26,9 @@ data class HabitProgress(
     val status: HabitStatus
 )
 
+/**
+ * Calcula el progreso (fracción y estado) del hábito según su ventana de seguimiento.
+ */
 fun Habit.progressOn(today: LocalDate = LocalDate.now()): HabitProgress {
     if (windowDays <= 0) {
         return HabitProgress(habitId = id, progressFraction = 0f, status = HabitStatus.PENDING)

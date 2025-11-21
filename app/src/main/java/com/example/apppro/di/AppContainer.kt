@@ -10,6 +10,9 @@ import com.example.apppro.domain.usecase.SetHabitProgressUseCase
 import com.example.apppro.domain.usecase.ToggleHabitCompletionUseCase
 import com.example.apppro.ui.viewmodel.HabitViewModelFactory
 
+/**
+ * Contenedor que crea las dependencias compartidas (repositorio, casos de uso y fábrica de ViewModel).
+ */
 class AppContainer(context: Context) {
     private val repository: HabitDataStoreRepository by lazy { HabitDataStoreRepository(context) }
 
@@ -21,6 +24,7 @@ class AppContainer(context: Context) {
     private val setHabitProgressUseCase: SetHabitProgressUseCase by lazy { SetHabitProgressUseCase(repository) }
 
     val habitViewModelFactory: HabitViewModelFactory by lazy {
+        // Fábrica que inyecta los casos de uso necesarios al ViewModel.
         HabitViewModelFactory(
             observeHabitsUseCase,
             observeHabitProgressUseCase,

@@ -10,6 +10,9 @@ import com.example.apppro.ui.screens.HabitsScreen
 import com.example.apppro.ui.screens.ProgressScreen
 import com.example.apppro.ui.viewmodel.HabitViewModel
 
+/**
+ * Define las rutas de navegación disponibles en la aplicación.
+ */
 object Destinations {
     const val HABITS = "habits"
     const val ADD = "add"
@@ -17,6 +20,9 @@ object Destinations {
 }
 
 @Composable
+/**
+ * Componente que define el grafo de navegación para las pantallas principales y las acciones relacionadas con el ViewModel.
+ */
 fun AppNavHost(
     viewModel: HabitViewModel,
     isDarkTheme: Boolean,

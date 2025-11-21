@@ -7,7 +7,9 @@ import java.time.LocalDate
 
 val HABITS_KEY = stringPreferencesKey("habits_serialized")
 
-// Simple, safe serialization using Base64 for names and ISO dates for completions.
+/**
+ * Serializa los hábitos para guardarlos en DataStore usando Base64 para los nombres.
+ */
 fun serializeHabits(habits: List<Habit>): String {
     return habits.joinToString(";;") { h ->
         val encodedName = Base64.encodeToString(h.name.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
@@ -16,6 +18,9 @@ fun serializeHabits(habits: List<Habit>): String {
     }
 }
 
+/**
+ * Reconstruye los hábitos desde la cadena guardada, manejando fechas ISO y decodificando nombres.
+ */
 fun deserializeHabits(s: String): List<Habit> {
     if (s.isBlank()) return emptyList()
     return s.split(";;").mapNotNull { item ->

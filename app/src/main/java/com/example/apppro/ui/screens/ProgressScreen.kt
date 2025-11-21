@@ -39,6 +39,12 @@ import com.example.apppro.domain.model.HabitStatus
 import com.example.apppro.ui.viewmodel.HabitViewModel
 import kotlin.math.max
 
+/**
+ * Pantalla que muestra un resumen del progreso, incluyendo gráficos semanales y animaciones de confeti.
+/**
+ * Carta que muestra el progreso individual de una tarea y los iconos de acción.
+ */
+ */
 @Composable
 fun ProgressScreen(
     viewModel: HabitViewModel,
@@ -110,6 +116,9 @@ fun ProgressScreen(
     }
 }
 
+/**
+ * Gráfico semanal simplificado que muestra barras para cada día y se anima con el progreso promedio.
+ */
 @Composable
 private fun WeeklyBarChart(values: List<Float>, modifier: Modifier = Modifier) {
     Row(

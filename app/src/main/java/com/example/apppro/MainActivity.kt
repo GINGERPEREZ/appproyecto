@@ -32,6 +32,7 @@ import com.example.apppro.ui.navigation.AppNavHost
 import com.example.apppro.ui.theme.APPPROTheme
 import com.example.apppro.ui.viewmodel.HabitViewModel
 
+// Constants para el sensor
 private const val NIGHT_THRESHOLD_LUX = 10f
 private const val NIGHT_NOTIFICATION_CHANNEL = "night_tasks"
 private const val NIGHT_NOTIFICATION_ID = 1001
@@ -47,7 +48,7 @@ class MainActivity : ComponentActivity() {
     private val habitViewModel: HabitViewModel by lazy {
         ViewModelProvider(this, appContainer.habitViewModelFactory)[HabitViewModel::class.java]
     }
-
+////////////// SENSOR //////////////
     private val lightSensorListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
             val lux = event.values.firstOrNull() ?: return
@@ -57,6 +58,8 @@ class MainActivity : ComponentActivity() {
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
     }
 
+
+// Creacion de aplicacion 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

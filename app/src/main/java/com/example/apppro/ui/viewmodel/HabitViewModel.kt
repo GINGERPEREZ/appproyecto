@@ -1,3 +1,4 @@
+/// MVVVM Modelo vista modelo
 package com.example.apppro.ui.viewmodel
 
 import androidx.compose.runtime.getValue

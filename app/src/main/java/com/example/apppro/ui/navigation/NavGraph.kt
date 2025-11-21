@@ -39,7 +39,7 @@ fun AppNavHost(
             AddHabitScreen(viewModel = viewModel, onDone = { navController.navigateUp() })
         }
         composable(Destinations.PROGRESS) {
-            ProgressScreen(onBack = { navController.navigateUp() })
+            ProgressScreen(viewModel = viewModel, onBack = { navController.navigateUp() })
         }
     }
 }

@@ -32,7 +32,7 @@ class HabitViewModel(
     val habits: StateFlow<List<Habit>> = observeHabitsUseCase()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val habitProgressState: StateFlow<List<HabitProgress>> = observeHabitProgressUseCase()
+    val habitProgresses: StateFlow<List<HabitProgress>> = observeHabitProgressUseCase()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val overallProgress: StateFlow<Float> = observeOverallProgressUseCase()
@@ -45,7 +45,7 @@ class HabitViewModel(
         selectedHabitId = id
     }
 
-    fun habitProgressFor(habitId: Long): HabitProgress? = habitProgressState.value.firstOrNull { it.habitId == habitId }
+    fun habitProgressFor(habitId: Long): HabitProgress? = habitProgresses.value.firstOrNull { it.habitId == habitId }
 
     fun addHabit(name: String, windowDays: Int = 7) {
         viewModelScope.launch {

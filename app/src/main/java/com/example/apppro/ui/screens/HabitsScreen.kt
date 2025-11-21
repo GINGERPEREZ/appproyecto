@@ -61,7 +61,7 @@ fun HabitsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     val overall by viewModel.overallProgress.collectAsState()
                     LinearProgressIndicator(
-                        progress = { overall.coerceIn(0f, 1f) },
+                        progress = overall.coerceIn(0f, 1f),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp)

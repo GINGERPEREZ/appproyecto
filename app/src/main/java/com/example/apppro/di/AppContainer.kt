@@ -1,6 +1,7 @@
 package com.example.apppro.di
 
 import android.content.Context
+import com.example.apppro.data.FocusReminderRepository
 import com.example.apppro.data.repository.HabitDataStoreRepository
 import com.example.apppro.domain.usecase.AddHabitUseCase
 import com.example.apppro.domain.usecase.ObserveHabitProgressUseCase
@@ -16,6 +17,7 @@ import com.example.apppro.ui.viewmodel.HabitViewModelFactory
 class AppContainer(context: Context) {
     private val repository: HabitDataStoreRepository by lazy { HabitDataStoreRepository(context) }
 
+    private val focusReminderRepository: FocusReminderRepository by lazy { FocusReminderRepository(context) }
     private val observeHabitsUseCase: ObserveHabitsUseCase by lazy { ObserveHabitsUseCase(repository) }
     private val observeHabitProgressUseCase: ObserveHabitProgressUseCase by lazy { ObserveHabitProgressUseCase(observeHabitsUseCase) }
     private val observeOverallProgressUseCase: ObserveOverallProgressUseCase by lazy { ObserveOverallProgressUseCase(observeHabitProgressUseCase) }
@@ -31,7 +33,8 @@ class AppContainer(context: Context) {
             observeOverallProgressUseCase,
             addHabitUseCase,
             toggleHabitCompletionUseCase,
-            setHabitProgressUseCase
+            setHabitProgressUseCase,
+            focusReminderRepository
         )
     }
 }

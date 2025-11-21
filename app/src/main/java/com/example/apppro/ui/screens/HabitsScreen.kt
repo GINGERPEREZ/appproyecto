@@ -40,6 +40,8 @@ fun HabitsScreen(
     viewModel: HabitViewModel,
     isDarkTheme: Boolean,
     onThemeToggle: (Boolean) -> Unit,
+    accelerometerReminderEnabled: Boolean,
+    onAccelerometerToggle: (Boolean) -> Unit,
     onAdd: () -> Unit,
     onShowProgress: () -> Unit,
     onBack: () -> Unit = {},
@@ -80,6 +82,26 @@ fun HabitsScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Switch(checked = isDarkTheme, onCheckedChange = onThemeToggle)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "Recordatorio de enfoque", style = MaterialTheme.typography.labelSmall)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Switch(checked = accelerometerReminderEnabled, onCheckedChange = onAccelerometerToggle)
+                    }
+                    if (accelerometerReminderEnabled) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = android.R.drawable.ic_dialog_info),
+                                contentDescription = "Recordatorio activo",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+                            Text("Recordatorio activo", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(

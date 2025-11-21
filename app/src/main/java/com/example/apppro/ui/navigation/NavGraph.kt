@@ -27,6 +27,8 @@ fun AppNavHost(
     viewModel: HabitViewModel,
     isDarkTheme: Boolean,
     onThemeToggle: (Boolean) -> Unit,
+    accelerometerReminderEnabled: Boolean,
+    onAccelerometerToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
@@ -37,6 +39,8 @@ fun AppNavHost(
                 viewModel = viewModel,
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
+                accelerometerReminderEnabled = accelerometerReminderEnabled,
+                onAccelerometerToggle = onAccelerometerToggle,
                 onAdd = { navController.navigate(Destinations.ADD) },
                 onShowProgress = { navController.navigate(Destinations.PROGRESS) }
             )

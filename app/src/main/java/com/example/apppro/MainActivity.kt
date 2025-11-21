@@ -31,24 +31,32 @@ import com.example.apppro.di.AppContainer
 import com.example.apppro.ui.navigation.AppNavHost
 import com.example.apppro.ui.theme.APPPROTheme
 import com.example.apppro.ui.viewmodel.HabitViewModel
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-// Constants para el sensor
 private const val NIGHT_THRESHOLD_LUX = 10f
+private const val ACCELEROMETER_THRESHOLD = 12f
 private const val NIGHT_NOTIFICATION_CHANNEL = "night_tasks"
+private const val FOCUS_NOTIFICATION_CHANNEL = "focus_tasks"
 private const val NIGHT_NOTIFICATION_ID = 1001
+private const val FOCUS_NOTIFICATION_ID = 1002
 
 class MainActivity : ComponentActivity() {
     private lateinit var appContainer: AppContainer
-    private val nightAlertState = mutableStateOf(false)
     private lateinit var sensorManager: SensorManager
     private var lightSensor: Sensor? = null
-    private var nightModeTriggered = false
+    private var accelerometer: Sensor? = null
     private lateinit var notificationManager: NotificationManagerCompat
+    private var nightModeTriggered = false
+    private var accelerometerTriggered = false
+    private val nightAlertState = mutableStateOf(false)
+    private val focusAlertState = mutableStateOf(false)
+    private var accelerometerReminderEnabledGlobal = true
 
     private val habitViewModel: HabitViewModel by lazy {
         ViewModelProvider(this, appContainer.habitViewModelFactory)[HabitViewModel::class.java]
     }
-////////////// SENSOR //////////////
+
     private val lightSensorListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
             val lux = event.values.firstOrNull() ?: return
@@ -58,21 +66,36 @@ class MainActivity : ComponentActivity() {
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
     }
 
+    private val accelerometerListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+            val magnitude = sqrt(
+                event.values[0].pow(2) +
+                    event.values[1].pow(2) +
+                    event.values[2].pow(2)
+            )
+            handleAccelerometerMovement(magnitude)
+        }
 
-// Creacion de aplicacion 
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         appContainer = AppContainer(this)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         notificationManager = NotificationManagerCompat.from(this)
-        createNotificationChannel()
+        createNotificationChannels()
 
         setContent {
             var isDarkTheme by rememberSaveable { mutableStateOf(false) }
+            var accelerometerReminderEnabled by rememberSaveable { mutableStateOf(true) }
             val hasPendingHabits by habitViewModel.hasPendingHabits.collectAsState(initial = false)
             val showNightAlert by nightAlertState
+            val showFocusAlert by focusAlertState
+            accelerometerReminderEnabledGlobal = accelerometerReminderEnabled
 
             APPPROTheme(darkTheme = isDarkTheme) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -80,10 +103,19 @@ class MainActivity : ComponentActivity() {
                         viewModel = habitViewModel,
                         isDarkTheme = isDarkTheme,
                         onThemeToggle = { isDarkTheme = it },
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier.padding(innerPadding),
+                        accelerometerReminderEnabled = accelerometerReminderEnabled,
+                        onAccelerometerToggle = { enabled ->
+                            accelerometerReminderEnabled = enabled
+                            accelerometerReminderEnabledGlobal = enabled
+                            if (!enabled) {
+                                accelerometerTriggered = false
+                                focusAlertState.value = false
+                            }
+                        }
                     )
                 }
-////////////// ACTIVACION DE SENSOR
+
                 if (showNightAlert && hasPendingHabits) {
                     AlertDialog(
                         onDismissRequest = { nightAlertState.value = false },
@@ -93,7 +125,24 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         title = { Text("Recordatorio nocturno") },
-                        text = { Text("Es de noche y tienes tareas pendientes. ¿Las completas antes de descansar?") }
+                        text = {
+                            Text("Es de noche y tienes tareas pendientes. ¿Las completas antes de descansar?")
+                        }
+                    )
+                }
+
+                if (showFocusAlert && hasPendingHabits) {
+                    AlertDialog(
+                        onDismissRequest = { focusAlertState.value = false },
+                        confirmButton = {
+                            Button(onClick = { focusAlertState.value = false }) {
+                                Text("Enfocar")
+                            }
+                        },
+                        title = { Text("Levanta y enfócate") },
+                        text = {
+                            Text("Detectamos que tomaste el teléfono. Concentrate y termina tus tareas pendientes.")
+                        }
                     )
                 }
             }
@@ -105,10 +154,14 @@ class MainActivity : ComponentActivity() {
         lightSensor?.also { sensor ->
             sensorManager.registerListener(lightSensorListener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
         }
+        accelerometer?.also { sensor ->
+            sensorManager.registerListener(accelerometerListener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
     }
 
     override fun onPause() {
         sensorManager.unregisterListener(lightSensorListener)
+        sensorManager.unregisterListener(accelerometerListener)
         super.onPause()
     }
 
@@ -125,18 +178,40 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+    private fun handleAccelerometerMovement(magnitude: Float) {
+        if (!accelerometerReminderEnabledGlobal) return
+        val isMovement = magnitude > ACCELEROMETER_THRESHOLD
+        if (!isMovement) {
+            accelerometerTriggered = false
+            return
+        }
+        if (!accelerometerTriggered && habitViewModel.hasPendingHabits.value) {
+            accelerometerTriggered = true
+            runOnUiThread { focusAlertState.value = true }
+            sendFocusReminderNotification()
+        }
+    }
+
+    private fun createNotificationChannels() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val channels = listOf(
+            NotificationChannel(
                 NIGHT_NOTIFICATION_CHANNEL,
                 "Recordatorios nocturnos",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Se avisa por la noche si quedan tareas sin completar"
+            },
+            NotificationChannel(
+                FOCUS_NOTIFICATION_CHANNEL,
+                "Recordatorios de enfoque",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Se recuerda terminar tareas cuando el teléfono se levanta"
             }
-            val manager = getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
-        }
+        )
+        val manager = getSystemService(NotificationManager::class.java)
+        channels.forEach { manager?.createNotificationChannel(it) }
     }
 
     private fun sendNightReminderNotification() {
@@ -148,5 +223,16 @@ class MainActivity : ComponentActivity() {
             .setAutoCancel(true)
             .build()
         notificationManager.notify(NIGHT_NOTIFICATION_ID, notification)
+    }
+
+    private fun sendFocusReminderNotification() {
+        val notification = NotificationCompat.Builder(this, FOCUS_NOTIFICATION_CHANNEL)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Concéntrate")
+            .setContentText("Detectamos que tomaste el celular; termina las tareas antes de distraerte.")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        notificationManager.notify(FOCUS_NOTIFICATION_ID, notification)
     }
 }

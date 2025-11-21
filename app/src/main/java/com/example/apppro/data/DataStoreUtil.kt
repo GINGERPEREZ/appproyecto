@@ -1,11 +1,13 @@
 package com.example.apppro.data
 
 import android.util.Base64
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.apppro.domain.model.Habit
 import java.time.LocalDate
 
 val HABITS_KEY = stringPreferencesKey("habits_serialized")
+val FOCUS_REMINDER_ENABLED_KEY = booleanPreferencesKey("focus_reminder_enabled")
 
 /**
  * Serializa los hábitos para guardarlos en DataStore usando Base64 para los nombres.

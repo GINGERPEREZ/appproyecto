@@ -1,6 +1,6 @@
 # MetaDiaria
 
-MetaDiaria es una app Android construida con Jetpack Compose que ayuda a registrar y completar hábitos diarios. Combina una pantalla principal con tarjetas, sliders para ajustar progreso, un resumen semanal y recordatorios nocturnos basados en el nivel de luz.
+MetaDiaria es una app Android construida con Jetpack Compose que ayuda a registrar y completar hábitos diarios. Combina una pantalla principal con tarjetas, sliders para ajustar progreso, un resumen semanal y recordatorios nocturnos basados en el nivel de luz y de movimiento.
 
 ## Qué contiene cada carpeta
 
@@ -45,6 +45,7 @@ appproyecto/
 2. `AddHabitScreen` permite crear un nuevo hábito con nombre y ventana fija (7 días por defecto).
 3. `ProgressScreen` resume el progreso semanal con un gráfico y tarjetas que muestran el porcentaje y permiten togglear/debater el progreso real.
 4. Al caer la noche (lux < 10), `MainActivity` abre un diálogo y lanza una notificación si todavía existen hábitos incompletos, ayudando al usuario a cerrar pendientes antes de dormir.
+5. Cuando el teléfono se levanta (movimiento detectado por el acelerómetro) y el recordatorio de enfoque está activado, aparece una alerta similar para motivar a terminar las tareas; esa función se puede desactivar desde la pantalla principal con el switch correspondiente.
 
 ## Tests
 
@@ -67,5 +68,6 @@ appproyecto/
 ## Notas adicionales
 
 - La persistencia es local, ligera y sin base de datos pesada; usa `Preferences DataStore` con serialización manual.
+- Los recordatorios nocturnos y de enfoque usen canales de notificación dedicados y se muestran via `AlertDialog` en la actividad principal.
 - El ViewModel expone flujos reactivos (`StateFlow`) para mantener sincronizada toda la UI.
 - Si quieres preparar un artefacto para distribución, puedes extender `build.gradle.kts` con signingConfigs + proguard adicional para release.

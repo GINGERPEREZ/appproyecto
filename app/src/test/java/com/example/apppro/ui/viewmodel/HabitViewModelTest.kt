@@ -1,5 +1,6 @@
 package com.example.apppro.ui.viewmodel
 
+import com.example.apppro.data.FocusReminderStore
 import com.example.apppro.domain.usecase.AddHabitUseCase
 import com.example.apppro.domain.usecase.ObserveHabitProgressUseCase
 import com.example.apppro.domain.usecase.ObserveHabitsUseCase
@@ -11,6 +12,8 @@ import com.example.apppro.testutil.RecordingHabitRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -36,7 +39,8 @@ class HabitViewModelTest {
             observeOverallProgressUseCase,
             addHabitUseCase,
             toggleHabitCompletionUseCase,
-            setHabitProgressUseCase
+            setHabitProgressUseCase,
+            FakeFocusReminderStore()
         )
 
         viewModel.setHabitProgress(99L, 0.25f)
@@ -46,5 +50,13 @@ class HabitViewModelTest {
         val call = repository.setProgressCalls.first()
         assertEquals(99L, call.habitId)
         assertEquals(0.25f, call.fraction)
+    }
+}
+
+private class FakeFocusReminderStore : FocusReminderStore {
+    private val state = MutableStateFlow(true)
+    override val focusReminderEnabled: Flow<Boolean> = state
+    override suspend fun setFocusReminderEnabled(enabled: Boolean) {
+        state.value = enabled
     }
 }

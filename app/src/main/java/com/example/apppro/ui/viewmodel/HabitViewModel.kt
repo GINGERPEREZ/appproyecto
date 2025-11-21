@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.apppro.data.FocusReminderStore
 import com.example.apppro.domain.model.Habit
 import com.example.apppro.domain.model.HabitProgress
 import com.example.apppro.domain.model.HabitStatus
@@ -29,7 +30,8 @@ class HabitViewModel(
     observeOverallProgressUseCase: ObserveOverallProgressUseCase,
     private val addHabitUseCase: AddHabitUseCase,
     private val toggleHabitCompletionUseCase: ToggleHabitCompletionUseCase,
-    private val setHabitProgressUseCase: SetHabitProgressUseCase
+    private val setHabitProgressUseCase: SetHabitProgressUseCase,
+    private val focusReminderRepository: FocusReminderStore
 ) : ViewModel() {
 
     val habits: StateFlow<List<Habit>> = observeHabitsUseCase()
@@ -44,6 +46,9 @@ class HabitViewModel(
     val hasPendingHabits: StateFlow<Boolean> = habitProgresses
         .map { progressList -> progressList.any { it.status != HabitStatus.COMPLETED } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val focusReminderEnabled: StateFlow<Boolean> = focusReminderRepository.focusReminderEnabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     var selectedHabitId by mutableStateOf<Long?>(null)
         private set
@@ -72,6 +77,12 @@ class HabitViewModel(
             setHabitProgressUseCase(habitId, fraction)
         }
     }
+
+    fun setFocusReminderEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            focusReminderRepository.setFocusReminderEnabled(enabled)
+        }
+    }
 }
 
 class HabitViewModelFactory(
@@ -80,7 +91,8 @@ class HabitViewModelFactory(
     private val observeOverallProgressUseCase: ObserveOverallProgressUseCase,
     private val addHabitUseCase: AddHabitUseCase,
     private val toggleHabitCompletionUseCase: ToggleHabitCompletionUseCase,
-    private val setHabitProgressUseCase: SetHabitProgressUseCase
+    private val setHabitProgressUseCase: SetHabitProgressUseCase,
+    private val focusReminderRepository: FocusReminderStore
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HabitViewModel::class.java)) {
@@ -91,7 +103,8 @@ class HabitViewModelFactory(
                 observeOverallProgressUseCase,
                 addHabitUseCase,
                 toggleHabitCompletionUseCase,
-                setHabitProgressUseCase
+                setHabitProgressUseCase,
+                focusReminderRepository
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
